@@ -1,0 +1,19 @@
+name: Verify library
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - run: mvn --batch-mode test-compile exec:java -Dexec.mainClass=org.testar.abstraction.PrepareConformance -Dexec.classpathScope=test
+      - run: mvn --batch-mode verify
