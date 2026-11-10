@@ -79,6 +79,36 @@ final class BoundaryTest {
     }
 
     @Test
+    void jsonReadingKeepsDistinctCapturedValuesSeparate() {
+        // Two captured measurements differ beyond ordinary floating-point precision.
+        JsonNode values = Json.parse("[1, 1.00, 18446744073709551615, 1.8446744073709551615e19,"
+            + "0.10000000000000000001, 0.10000000000000000002]");
+        assertEquals(canonical(values.get(0)), canonical(values.get(1)));
+        assertEquals(canonical(values.get(2)), canonical(values.get(3)));
+        assertNotEquals(canonical(values.get(4)), canonical(values.get(5)));
+        assertEquals(canonical(values), canonical(Json.parse(values.toString())));
+
+        // Numeric widget exclusions retain the captured decimal value.
+        JsonNode definition = Json.parse("""
+            {"version":1,"name":"Precise exclusion","state":[{"name":"page","keys":["page"]}],
+             "capture":"same","widgets":{"fields":[{"name":"value","keys":["value"]}],
+             "hierarchy":"flat","order":"sort","descendants":"keep",
+             "exclude":[{"keys":["value"],"op":"equals","value":0.10000000000000000001}]}}
+            """);
+        JsonNode policy = Abstraction.parseRules(definition.toString());
+        ObjectNode observation = object("recorded_state", object(
+            "properties", object("page", "measurements"), "capture", "complete",
+            "widgets", array()
+                .add(object("id", "excluded", "parent", null, "properties", object("value", values.get(4))))
+                .add(object("id", "retained", "parent", null, "properties", object("value", values.get(5))))));
+        var indexed = new EvidenceIndex.Observation(
+            object("source", "source", "run", "run", "observation", "observation"), observation);
+        Projection.Result result = Projection.observation(indexed, policy, new Budget());
+        assertEquals(1, result.widgets().size());
+        assertEquals("retained", result.widgets().get(0).path("reference").path("widget").asText());
+    }
+
+    @Test
     void hierarchyCyclesStayUnmatched() {
         JsonNode observation = input.get("sources").get(0).path("evidence").path("observations").get(0);
         ObjectNode widget = (ObjectNode) observation.path("recorded_state").path("widgets").get(0);

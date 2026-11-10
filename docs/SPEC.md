@@ -18,6 +18,8 @@ The `evidence` object contains these collections:
 
 Collections use arrays of records. The shared conformance input uses this same collection structure. An original JSONL trace must first be read by its evidence library; it is different from this reconstructed input.
 
+When reading reconstructed JSON with Jackson, enable `DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS` on the caller's `ObjectMapper`. This preserves decimal digits before comparison. Integer values remain exact. For example, `1` and `1.00` match, while `0.10000000000000000001` and `0.10000000000000000002` remain different.
+
 ## Group observations
 
 Rules select state properties, widget properties, filtering, hierarchy, order, and string normalization. The preview contains the applied `definition`, `policyFingerprint`, `interpreterVersion`, `inputScope`, `groups`, and `unmatched` observations.

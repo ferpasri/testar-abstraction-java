@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.testar</groupId>
     <artifactId>testar-abstraction</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.3</version>
     <name>TESTAR Abstraction</name>
     <description>Native Java interpretation of TESTAR abstraction rules</description>
     <properties>
